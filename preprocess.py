@@ -1,9 +1,6 @@
 import argparse
-
 import yaml
-
 from preprocessor.preprocessor import Preprocessor
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -12,4 +9,6 @@ if __name__ == "__main__":
 
     config = yaml.load(open(args.config, "r"), Loader=yaml.FullLoader)
     preprocessor = Preprocessor(config)
+    print("Starting preprocessing...")
     preprocessor.build_from_path()
+    print("Preprocessing completed.")

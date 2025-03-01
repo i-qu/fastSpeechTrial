@@ -64,12 +64,12 @@ class Preprocessor:
 
         # Compute pitch, energy, duration, and mel-spectrogram
         speakers = {}
-        for i, speaker in enumerate(tqdm(os.listdir(self.in_dir))):
+        speaker_dirs = os.listdir(self.in_dir)
+        for i, speaker in enumerate(tqdm(speaker_dirs, desc="Speakers")):
+            print(f"Processing speaker: {speaker}")
             speakers[speaker] = i
-            for wav_name in os.listdir(os.path.join(self.in_dir, speaker)):
-                if ".wav" not in wav_name:
-                    continue
-
+            wav_files = [f for f in os.listdir(os.path.join(self.in_dir, speaker)) if f.endswith(".wav")]
+            for wav_name in tqdm(wav_files, desc=f"Files for speaker {speaker}", leave=False):
                 basename = wav_name.split(".")[0]
                 tg_path = os.path.join(
                     self.out_dir, "TextGrid", speaker, "{}.TextGrid".format(basename)
@@ -159,6 +159,8 @@ class Preprocessor:
             self.out_dir, "TextGrid", speaker, "{}.TextGrid".format(basename)
         )
 
+ #       print(f"Processing utterance: {basename}")
+
         # Get alignments
         textgrid = tgt.io.read_textgrid(tg_path)
         phone, duration, start, end = self.get_alignment(
@@ -166,6 +168,7 @@ class Preprocessor:
         )
         text = "{" + " ".join(phone) + "}"
         if start >= end:
+            print(f"Skipping utterance: {basename} (start >= end)")
             return None
 
         # Read and trim wav files
@@ -188,6 +191,7 @@ class Preprocessor:
 
         pitch = pitch[: sum(duration)]
         if np.sum(pitch != 0) <= 1:
+            print(f"Skipping utterance: {basename} (pitch sum <= 1)")
             return None
 
         # Compute mel-scale spectrogram and energy
